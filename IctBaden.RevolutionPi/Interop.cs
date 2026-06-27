@@ -44,7 +44,13 @@ namespace IctBaden.RevolutionPi
         // see ioctl.h
         internal const uint IOCPARM_MASK = 0x1fff;		/* parameter length, at most 13 bits */
 
-        // Linux _IO uses _IOC_NONE = 0 (not the BSD 0x20000000); see <asm-generic/ioctl.h>.
+        // IOC_VOID MUST be 0. The piControl driver matches ioctls with a plain
+        //   switch (prg_nr) { case KB_GET_VALUE: ... default: return -EINVAL; }
+        // where KB_* == _IO('K', n) == 0x00004B0n (Linux _IO, dir = _IOC_NONE = 0).
+        // The BSD/Winsock value 0x20000000 (an old .NET-port artifact) would yield
+        // 0x20004B0n, which matches no case -> every ioctl fails with EINVAL.
+        // Note: this only affects Reset/GetBitValue/SetBitValue; the LED path uses
+        // lseek+read/write, not ioctl, so it is unaffected either way.
         internal const uint IOC_VOID = 0x00000000;   /* no parameters */
         internal const uint IOC_OUT = 0x40000000;    /* copy out parameters */
         internal const uint IOC_IN = 0x80000000;     /* copy in parameters */

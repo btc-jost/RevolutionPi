@@ -105,6 +105,11 @@ migration (`RevPiLeds` A3/Watchdog, `ConvertDataToValue` case-4 fix), then the *
   any public API it exposes warning-clean (the parent consumes only ctors / `Open()` / LED props, so the
   blast radius is small, but don't widen nullable holes in the public surface). net10 analyzers like CA2101
   apply — the `libc` string P/Invoke uses `CharSet.Ansi` to stay clean.
+- **Do not re-flip `Interop.IOC_VOID` to `0x20000000`.** It must be `0`: the driver matches ioctls with
+  `switch (prg_nr)` against `_IO('K',n)=0x00004B0n` (`default: -EINVAL`), so the BSD value `0x20000000`
+  makes `Reset`/`GetBitValue`/`SetBitValue` fail. Verified against the driver sources + history (it was
+  never an ioctl constant there — a .NET-port artifact). The LED path uses `read`/`write`, not ioctl, so
+  it's unaffected — past "it worked with 0x20000000" was coincidental.
 - **The LED byte layout is hardware-specific.** It *is* defined in the driver's `picontrol_intern.h`
   (`PICONTROL_LED_*`) and `revpi_core.h` (`SRevPiProcessImage`), mirrored in `Model/RevPiLedBits.cs` +
   `RevPiCoreImageOffsets`. The single-byte `leds` field (offset 0x06, from the `RevPiLED` config var) holds
