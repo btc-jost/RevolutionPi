@@ -13,7 +13,7 @@ namespace IctBaden.RevolutionPi.Model
         public Guid Guid { get; set; }
         public string? Id { get; set; }
         public string? Type { get; set; }
-        public int ProductType { get; set; }
+        public ProductType ProductType { get; set; }
         public int Position { get; set; }
         public string? Name { get; set; }
         public string? Bmk { get; set; }

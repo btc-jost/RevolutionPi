@@ -63,7 +63,8 @@ namespace IctBaden.RevolutionPi.Test
 
             // productType ("95") and position ("0") are JSON strings in config.rsc.
             Assert.That(device.Name, Is.EqualTo("RevPi Core V1.2"));
-            Assert.That(device.ProductType, Is.EqualTo(95));
+            Assert.That(device.ProductType.Value, Is.EqualTo(95));
+            Assert.That(device.ProductType.Name, Is.EqualTo("RevPi Core"));
             Assert.That(device.Position, Is.EqualTo(0));
             Assert.That(device.Offset, Is.EqualTo(0));
         }

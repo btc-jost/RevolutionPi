@@ -201,7 +201,7 @@ namespace PiTest
             foreach (var device in config.Devices)
             {
                 Console.WriteLine($"Device {device.Name}  [{device.Type}]");
-                Console.WriteLine($"  Address: {device.Offset}, Type: {device.ProductType} (0x{device.ProductType:X2}) {RevPiProductNames.GetProductName(device.ProductType)}");
+                Console.WriteLine($"  Address: {device.Offset}, Type: {device.ProductType.Value} (0x{device.ProductType.Value:X2}) {device.ProductType.Name}");
                 foreach (var variable in device.Inputs)
                 {
                     Console.WriteLine($"    I[{variable.Address:D4}]  {variable.Name} : {variable.LengthText}");

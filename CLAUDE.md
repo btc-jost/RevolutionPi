@@ -33,7 +33,11 @@ Confirmed **64-bit (aarch64)** RevPi image. This matters for the P/Invoke widths
   - `Configuration/PiConfiguration.cs` — parses `/etc/revpi/config.rsc` with `System.Text.Json.Nodes`.
   - `Model/` — `SpiValue` (matches driver `SPIValue {__u16,__u8,__u8}`, 4 bytes), `SpiVariable`
     (matches `SPIVariable`, 38 bytes incl. pad), `VariableInfo`/`DeviceInfo` (STJ-parsed via
-    `DeviceInfo.FromJson`), `JsonScalar` (string-or-number coercion the config relies on), …
+    `DeviceInfo.FromJson`), `JsonScalar` (string-or-number coercion the config relies on),
+    `RevPiModuleTypes` (product-type id constants mirroring the driver headers `common_define.h`
+    `KUNBUS_FW_DESCR_TYP_*` + `piControl.h` `PICONTROL_SW_*` / not-connected flags), `RevPiProductNames`
+    (display names — not in the headers; keyed by the `RevPiModuleTypes` constants), `ProductType`
+    (value object: `IsConnected`/`IsSoftwareAdapter`/`Name`), …
 - `IctBaden.RevolutionPi.Test/` — **net10 NUnit** tests (SDK-style, `Microsoft.NET.Test.Sdk` + `NUnit` +
   `NUnit3TestAdapter`). In the **parent** `NovaalertStatusForwarderService.slnx`, so the parent CI
   `dotnet test` runs them: `ConfigurationTests`, `ConvertDataToValueTests`, `RevPiLedsTests`,
