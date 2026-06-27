@@ -2,74 +2,76 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Nodes;
 
 namespace IctBaden.RevolutionPi.Model
 {
     [DebuggerDisplay("{" + nameof(Name) + "}")]
     public class DeviceInfo
     {
-        public string CatalogNr { get; set; }
+        public string? CatalogNr { get; set; }
         public Guid Guid { get; set; }
-        public string Id { get; set; }
-        public string Type { get; set; }
+        public string? Id { get; set; }
+        public string? Type { get; set; }
         public int ProductType { get; set; }
         public int Position { get; set; }
-        public string Name { get; set; }
-        public string Bmk { get; set; }
+        public string? Name { get; set; }
+        public string? Bmk { get; set; }
         public int InpVariant { get; set; }
         public int OutVariant { get; set; }
-        public string Comment { get; set; }
+        public string? Comment { get; set; }
         public ushort Offset { get; set; }
 
-        // never assigned
-#pragma warning disable 0649
-        [JsonProperty("inp")]
-        private JObject _inp;
-        [JsonProperty("out")]
-        private JObject _out;
-        [JsonProperty("mem")]
-        private JObject _mem;
-        [JsonProperty("extend")]
-        private JObject _ext;
+        public VariableInfo[] Inputs { get; private set; } = Array.Empty<VariableInfo>();
+        public VariableInfo[] Outputs { get; private set; } = Array.Empty<VariableInfo>();
+        public VariableInfo[] Mems { get; private set; } = Array.Empty<VariableInfo>();
+        public VariableInfo[] Extends { get; private set; } = Array.Empty<VariableInfo>();
 
-        private VariableInfo[] GetVarInfos(JToken obj, VariableType type)
+        public IEnumerable<VariableInfo> Variables =>
+            Inputs.Concat(Outputs).Concat(Mems).Concat(Extends);
+
+        /// <summary>
+        /// Builds a device (incl. its input/output/mem/extend variables) from a
+        /// config.rsc "Devices" entry.
+        /// </summary>
+        public static DeviceInfo FromJson(JsonObject node)
         {
-            return obj?.Children()
-                .Select(token => new VariableInfo(this, type, int.Parse(token.First().Path), token.First.Children().ToList()))
-                .ToArray()
-                ?? new VariableInfo[0];
+            var device = new DeviceInfo
+            {
+                CatalogNr = JsonScalar.GetString(node["catalogNr"]),
+                Guid = JsonScalar.GetGuid(node["GUID"]),
+                Id = JsonScalar.GetString(node["id"]),
+                Type = JsonScalar.GetString(node["type"]),
+                ProductType = JsonScalar.GetInt(node["productType"]),
+                Position = JsonScalar.GetInt(node["position"]),
+                Name = JsonScalar.GetString(node["name"]),
+                Bmk = JsonScalar.GetString(node["bmk"]),
+                InpVariant = JsonScalar.GetInt(node["inpVariant"]),
+                OutVariant = JsonScalar.GetInt(node["outVariant"]),
+                Comment = JsonScalar.GetString(node["comment"]),
+                Offset = JsonScalar.GetUInt16(node["offset"])
+            };
+
+            device.Inputs = device.ParseVariables(node["inp"] as JsonObject, VariableType.Input);
+            device.Outputs = device.ParseVariables(node["out"] as JsonObject, VariableType.Output);
+            device.Mems = device.ParseVariables(node["mem"] as JsonObject, VariableType.Memory);
+            device.Extends = device.ParseVariables(node["extend"] as JsonObject, VariableType.Extend);
+            return device;
         }
 
-        public VariableInfo[] Inputs => GetVarInfos(_inp, VariableType.Input);
-        public VariableInfo[] Outputs => GetVarInfos(_out, VariableType.Output);
-        public VariableInfo[] Mems => GetVarInfos(_mem, VariableType.Memory);
-        public VariableInfo[] Extends => GetVarInfos(_ext, VariableType.Extend);
-
-        public IEnumerable<VariableInfo> Variables
+        private VariableInfo[] ParseVariables(JsonObject? obj, VariableType type)
         {
-            get
+            if (obj == null) return Array.Empty<VariableInfo>();
+
+            var variables = new List<VariableInfo>();
+            foreach (var entry in obj)
             {
-                foreach (var variableInfo in Inputs)
+                if (entry.Value is JsonArray fields && int.TryParse(entry.Key, out var index))
                 {
-                    yield return variableInfo;
-                }
-                foreach (var variableInfo in Outputs)
-                {
-                    yield return variableInfo;
-                }
-                foreach (var variableInfo in Mems)
-                {
-                    yield return variableInfo;
-                }
-                foreach (var variableInfo in Extends)
-                {
-                    yield return variableInfo;
+                    variables.Add(new VariableInfo(this, type, index, fields));
                 }
             }
+            return variables.ToArray();
         }
-
     }
-
 }

@@ -21,7 +21,8 @@ Confirmed **64-bit (aarch64)** RevPi image. This matters for the P/Invoke widths
 
 ## Layout
 
-- `IctBaden.RevolutionPi/` — **the library** (**net10.0**, nullable off). Key files:
+- `IctBaden.RevolutionPi/` — **the library** (**net10.0**, **nullable enabled**, no external deps —
+  System.Text.Json only). Key files:
   - `Interop.cs` — `[DllImport("libc")]` P/Invoke (`open/close/lseek/read/write/ioctl`) + `piControl.h`
     ioctl constants (`KB_*`, `_IO/_IOC`). aarch64-correct widths (`nint`/`nuint`); `IOC_VOID = 0`.
   - `PiControl.cs` — driver wrapper (process-image `Read`/`Write` via lseek+read/write; `GetBitValue`/
@@ -29,9 +30,10 @@ Confirmed **64-bit (aarch64)** RevPi image. This matters for the P/Invoke widths
   - `IPiControl.cs` — `Read`/`Write` seam so `RevPiLeds` bit-packing is unit-testable with a fake buffer.
   - `RevPiLeds.cs` — packs A1/A2/A3/Watchdog into one process-image LED byte
     (A1=bits0-1, A2=2-3, A3=4-5, Watchdog=bit7). Takes `IPiControl`; null-read-guarded.
-  - `Configuration/PiConfiguration.cs` — parses `/etc/revpi/config.rsc` (Newtonsoft.Json).
+  - `Configuration/PiConfiguration.cs` — parses `/etc/revpi/config.rsc` with `System.Text.Json.Nodes`.
   - `Model/` — `SpiValue` (matches driver `SPIValue {__u16,__u8,__u8}`, 4 bytes), `SpiVariable`
-    (matches `SPIVariable`, 38 bytes incl. pad), `VariableInfo`, `DeviceInfo`, …
+    (matches `SPIVariable`, 38 bytes incl. pad), `VariableInfo`/`DeviceInfo` (STJ-parsed via
+    `DeviceInfo.FromJson`), `JsonScalar` (string-or-number coercion the config relies on), …
 - `IctBaden.RevolutionPi.Test/` — **net10 NUnit** tests (SDK-style, `Microsoft.NET.Test.Sdk` + `NUnit` +
   `NUnit3TestAdapter`). In the **parent** `NovaalertStatusForwarderService.slnx`, so the parent CI
   `dotnet test` runs them: `ConfigurationTests`, `ConvertDataToValueTests`, `RevPiLedsTests`,
@@ -78,23 +80,26 @@ migration (`RevPiLeds` A3/Watchdog, `ConvertDataToValue` case-4 fix), then the *
 6. **Repo hygiene**: normalized to **UTF-8 (no BOM) / LF** (`.editorconfig` + `.gitattributes`), so the
    parent `dotnet format` gate no longer needs `--exclude ./RevolutionPi/` (dropped from CI). Lib csproj
    metadata → btc ownership, `GeneratePackageOnBuild=false`.
-7. **Lib → net10** (nullable still off); `PiTest.Core` retargeted net8→**net10** + repointed to the lib.
+7. **Lib → net10**, **`<Nullable>enable</Nullable>`**, and **dropped Newtonsoft.Json** for
+   `System.Text.Json.Nodes` (`JsonScalar` handles the config's string-encoded numbers); `PiTest.Core`
+   retargeted net8→**net10** + repointed to the lib. The lib now has **no external package deps**.
 8. **Tests**: `IctBaden.RevolutionPi.Test` modernized to net10/NUnit (SDK-style) and added to the parent
    slnx so CI `dotnet test` runs it; added `IPiControl` seam + `ConvertDataToValue`/`RevPiLeds`/struct-size
    coverage.
 
 ## Deferred
 
-- `<Nullable>enable</Nullable>` on the lib; System.Text.Json migration; publishing the NuGet package.
+- Publishing the NuGet package (consumed via ProjectReference; `GeneratePackageOnBuild=false`).
 - LED byte layout for newer RevPi models (Connect 4 / Flat use more / RGB LEDs) — hardware-specific, not
   in `piControl.h`; verify on the device.
 
 ## Conventions & gotchas
 
-- **The parent CI builds this lib with `-warnaserror`** (via the ProjectReference in the parent slnx).
-  Keep it warning-clean. nullable-off keeps that easy; if you enable `<Nullable>`, you must resolve every
-  resulting warning or the parent build breaks. (The lib is **net10**; net10 analyzers like CA2101 apply —
-  the `libc` string P/Invoke uses `CharSet.Ansi` to stay clean.)
+- **The parent CI builds this lib with `-warnaserror`** (via the ProjectReference in the parent slnx) and
+  the parent has `<Nullable>enable</Nullable>`. The lib is **nullable-enabled** too — keep both the lib and
+  any public API it exposes warning-clean (the parent consumes only ctors / `Open()` / LED props, so the
+  blast radius is small, but don't widen nullable holes in the public surface). net10 analyzers like CA2101
+  apply — the `libc` string P/Invoke uses `CharSet.Ansi` to stay clean.
 - **The LED byte layout is hardware-specific** and is **not** defined in `piControl.h`. Newer RevPi models
   (Connect 4 / Flat) use more / RGB LEDs with a different process-image layout. Verify against the actual
   device before relying on it.

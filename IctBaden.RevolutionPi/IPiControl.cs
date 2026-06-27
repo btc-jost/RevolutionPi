@@ -12,7 +12,7 @@ namespace IctBaden.RevolutionPi
         /// <param name="offset">Position to read from</param>
         /// <param name="length">Byte count to read</param>
         /// <returns>Data read or null in case of failure</returns>
-        byte[] Read(int offset, int length);
+        byte[]? Read(int offset, int length);
 
         /// <summary>
         /// Write data to the process image.

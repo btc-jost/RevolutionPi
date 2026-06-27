@@ -62,7 +62,7 @@ namespace IctBaden.RevolutionPi
         /// <param name="offset">Position to read from</param>
         /// <param name="length">Byte count to read</param>
         /// <returns>Data read or null in case of failure</returns>
-        public byte[] Read(int offset, int length)
+        public byte[]? Read(int offset, int length)
         {
             if (!IsOpen) return null;
 
@@ -166,9 +166,9 @@ namespace IctBaden.RevolutionPi
             }
         }
 
-        public VarData ReadVariable(VariableInfo varInfo)
+        public VarData? ReadVariable(VariableInfo varInfo)
         {
-            var deviceOffset = varInfo.Device.Offset;
+            var deviceOffset = varInfo.Device?.Offset ?? 0;
             int byteLen;
 
             switch (varInfo.Length)
