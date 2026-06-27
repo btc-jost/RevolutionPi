@@ -1,9 +1,9 @@
-﻿using System;
-using System.Diagnostics;
-using System.Threading;
-using IctBaden.RevolutionPi;
+﻿using IctBaden.RevolutionPi;
 using IctBaden.RevolutionPi.Configuration;
 using Microsoft.Owin.Hosting;
+using System;
+using System.Diagnostics;
+using System.Threading;
 
 namespace VariableServer
 {

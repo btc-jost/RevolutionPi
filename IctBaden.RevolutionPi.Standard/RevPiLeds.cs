@@ -1,6 +1,6 @@
-﻿using System;
+﻿using IctBaden.RevolutionPi.Configuration;
+using System;
 using System.Diagnostics;
-using IctBaden.RevolutionPi.Configuration;
 
 namespace IctBaden.RevolutionPi
 {
@@ -36,7 +36,7 @@ namespace IctBaden.RevolutionPi
             set
             {
                 var oldValue = LedByte;
-                LedByte = (byte) ((oldValue & ~0x03) | (byte) value);
+                LedByte = (byte)((oldValue & ~0x03) | (byte)value);
             }
         }
 

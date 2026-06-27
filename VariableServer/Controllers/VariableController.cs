@@ -1,4 +1,8 @@
-﻿using System;
+﻿using IctBaden.RevolutionPi;
+using IctBaden.RevolutionPi.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -7,10 +11,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Results;
-using IctBaden.RevolutionPi;
-using IctBaden.RevolutionPi.Configuration;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using VariableServer.Model;
 
 namespace VariableServer.Controllers
@@ -87,7 +87,7 @@ namespace VariableServer.Controllers
 
 
         private VarReadInfo GetVarReadInfo(string varname)
-        { 
+        {
             var config = Request.GetOwinContext().Get<PiConfiguration>("PiConfig");
             var control = Request.GetOwinContext().Get<PiControl>("PiControl");
 
@@ -136,7 +136,7 @@ namespace VariableServer.Controllers
                         Length = varInfo.Length,
                         Address = varInfo.Address,
                         Device = new VarDeviceInfo
-                        { 
+                        {
                             Name = varInfo.Device.Name,
                             Offset = varInfo.Device.Offset
                         },

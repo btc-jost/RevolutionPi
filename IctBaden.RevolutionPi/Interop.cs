@@ -1,23 +1,24 @@
-﻿using System.Runtime.InteropServices;
-using IctBaden.RevolutionPi.Model;
-
+﻿using IctBaden.RevolutionPi.Model;
+using System.Runtime.InteropServices;
 using off_t = System.Int32;
-
-// ReSharper disable UnusedMember.Global
 
 namespace IctBaden.RevolutionPi
 {
     internal static class Interop
     {
-        // ReSharper disable InconsistentNaming
-        // ReSharper disable UnusedMember.Local
-        private const int O_RDONLY = 00;
-        private const int O_WRONLY = 01;
-        internal const int O_RDWR = 02;
+        internal const int O_RDONLY = 0x00000000;
+        internal const int O_WRONLY = 0x00000001;
+        internal const int O_RDWR = 0x00000002;
+        internal const int O_CREAT = 0x00000100;
+        internal const int O_TRUNC = 0x00001000;
+        internal const int O_APPEND = 0x00002000;
+        internal const int O_NONBLOCK = 0x00004000;
+        internal const int O_DSYNC = 0x00010000;
+        internal const int O_DIRECT = 0x00040000;
 
         internal const int SEEK_SET = 0;
-        private const int SEEK_CUR = 1;
-        private const int SEEK_END = 2;
+        internal const int SEEK_CUR = 1;
+        internal const int SEEK_END = 2;
 
         [DllImport("libc", SetLastError = true, CharSet = CharSet.Auto)]
         internal static extern int open(string fileName, int mode);
@@ -35,16 +36,17 @@ namespace IctBaden.RevolutionPi
 
 
         // see ioctl.h
-        private const uint IOCPARM_MASK = 0x1FFF;		/* parameter length, at most 13 bits */
+        internal const uint IOCPARM_MASK = 0x1fff;		/* parameter length, at most 13 bits */
 
-        private const uint IOC_VOID = 0x00000000;   /* no parameters */
-        private const uint IOC_OUT = 0x40000000;    /* copy out parameters */
-        private const uint IOC_IN = 0x80000000;     /* copy in parameters */
-        private const uint IOC_INOUT = (IOC_IN | IOC_OUT);
+        internal const uint IOC_VOID = 0x20000000;   /* no parameters */
+        internal const uint IOC_OUT = 0x40000000;    /* copy out parameters */
+        internal const uint IOC_IN = 0x80000000;     /* copy in parameters */
+        internal const uint IOC_INOUT = (IOC_IN | IOC_OUT);
+        internal const uint IOC_DIRMASK = 0xe0000000;    /* mask for IN/OUT/VOID */
 
-        private static uint _IOC(uint inout, uint group, uint num, uint len) =>
+        internal static uint _IOC(uint inout, uint group, uint num, uint len) =>
             (inout | ((len & IOCPARM_MASK) << 16) | ((group) << 8) | (num));
-        private static uint _IO(uint g, uint n) => _IOC(IOC_VOID, (g), (n), 0);
+        internal static uint _IO(uint g, uint n) => _IOC(IOC_VOID, (g), (n), 0);
 
         [DllImport("libc", EntryPoint = "ioctl", SetLastError = true, CharSet = CharSet.Auto)]
         internal static extern int ioctl_void(int file, uint cmd);
@@ -53,7 +55,7 @@ namespace IctBaden.RevolutionPi
 
 
         // piControl.h
-        private const uint KB_IOC_MAGIC = 'K';
+        internal const uint KB_IOC_MAGIC = 'K';
         internal static readonly uint KB_RESET = _IO(KB_IOC_MAGIC, 12);  // reset the piControl driver including the config file
         internal static readonly uint KB_GET_DEVICE_INFO_LIST = _IO(KB_IOC_MAGIC, 13); // get the device info of all detected devices
         internal static readonly uint KB_GET_DEVICE_INFO = _IO(KB_IOC_MAGIC, 14);  // get the device info of one device
@@ -67,8 +69,5 @@ namespace IctBaden.RevolutionPi
 
         internal static readonly uint KB_WAIT_FOR_EVENT = _IO(KB_IOC_MAGIC, 50);  // wait for an event. This call is normally blocking
         internal const uint KB_EVENT_RESET = 1;		// piControl was reset, reload configuration
-
-        // ReSharper restore UnusedMember.Local
-        // ReSharper restore InconsistentNaming
     }
 }

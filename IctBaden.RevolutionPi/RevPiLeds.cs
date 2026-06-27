@@ -1,9 +1,11 @@
 ﻿using IctBaden.RevolutionPi.Configuration;
+using System;
+using System.Diagnostics;
 
 namespace IctBaden.RevolutionPi
 {
     /// <summary>
-    /// Setting and querying the system LEDs A1 and A2.
+    /// Setting and querying the system LEDs A1, A2, A3 and Watchdog.
     /// </summary>
     public class RevPiLeds
     {
@@ -12,10 +14,17 @@ namespace IctBaden.RevolutionPi
 
         public RevPiLeds(PiControl control, PiConfiguration config)
         {
-            _control = control;
+            _control = control ?? throw new ArgumentException("RevPiLeds cannot be used without PiControl");
 
             var info = config.GetVariable("RevPiLED");
             _ledAddress = info?.Address ?? 0x06;
+            Trace.TraceInformation($"RevPiLeds: Using address 0x{_ledAddress:X2}");
+        }
+
+        private byte LedByte
+        {
+            get => _control.Read(_ledAddress, 1)[0];
+            set => _control.Write(_ledAddress, new[] { value });
         }
 
         /// <summary>
@@ -23,16 +32,11 @@ namespace IctBaden.RevolutionPi
         /// </summary>
         public LedColor SystemLedA1
         {
-            get
-            {
-                var led = _control.Read(_ledAddress, 1);
-                return (LedColor)(led[0] & 0x03);
-            }
+            get => (LedColor)(LedByte & 0x03);
             set
             {
-                var oldLed = _control.Read(_ledAddress, 1);
-                var newLed = (byte)((oldLed[0] & ~0x03) | (byte)value);
-                _control.Write(_ledAddress, new[] { newLed });
+                var oldValue = LedByte;
+                LedByte = (byte)((oldValue & ~0x03) | (byte)value);
             }
         }
 
@@ -41,18 +45,26 @@ namespace IctBaden.RevolutionPi
         /// </summary>
         public LedColor SystemLedA2
         {
-            get
-            {
-                var led = _control.Read(_ledAddress, 1);
-                return (LedColor)((led[0] & 0x0C) >> 2);
-            }
-            set
-            {
-                var oldLed = _control.Read(_ledAddress, 1);
-                var newLed = (byte)((oldLed[0] & ~0x0C) | ((byte)value << 2));
-                _control.Write(_ledAddress, new[] { newLed });
-            }
+            get => (LedColor)((LedByte & 0x0C) >> 2);
+            set => LedByte = (byte)((LedByte & ~0x0C) | ((byte)value << 2));
         }
 
+        /// <summary>
+        /// Current color of system LED A3
+        /// </summary>
+        public LedColor SystemLedA3
+        {
+            get => (LedColor)((LedByte & 0x30) >> 4);
+            set => LedByte = (byte)((LedByte & ~0x30) | ((byte)value << 4));
+        }
+
+        /// <summary>
+        /// Watchdog
+        /// </summary>
+        public bool Watchdog
+        {
+            get => (LedByte & 0x80) == 0x80;
+            set => LedByte = (byte)((LedByte & ~0x80) | (value ? 0x80 : 0x00));
+        }
     }
 }

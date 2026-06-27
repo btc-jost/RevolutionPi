@@ -1,10 +1,12 @@
-﻿using System.Diagnostics;
+﻿using IctBaden.RevolutionPi.Model;
+using System.Diagnostics;
 using System.Text;
-using IctBaden.RevolutionPi.Model;
-// ReSharper disable UnusedMember.Global
 
 namespace IctBaden.RevolutionPi
 {
+    /// <summary>
+    /// Interface to piControl driver process.
+    /// </summary>
     public class PiControl
     {
         /// <summary>
@@ -124,7 +126,6 @@ namespace IctBaden.RevolutionPi
         /// <param name="address">Address of the byte in the process image</param>
         /// <param name="bit">bit position (0-7)</param>
         /// <param name="value"></param>
-        // ReSharper disable once UnusedMember.Global
         public void SetBitValue(ushort address, byte bit, bool value)
         {
             var bitValue = new SpiValue
@@ -151,11 +152,11 @@ namespace IctBaden.RevolutionPi
         {
             switch (data.Length)
             {
-                case 8:
+                case 1:
                     return data[0];
-                case 16:
+                case 2:
                     return (ushort)(data[0] + (data[1] * 0x100));
-                case 32:
+                case 4:
                     return data[0] +
                            (ulong)(data[1] * 0x100) +
                            (ulong)(data[2] * 0x10000) +
@@ -165,7 +166,6 @@ namespace IctBaden.RevolutionPi
             }
         }
 
-        // ReSharper disable once UnusedMember.Global
         public VarData ReadVariable(VariableInfo varInfo)
         {
             var deviceOffset = varInfo.Device.Offset;
@@ -173,11 +173,11 @@ namespace IctBaden.RevolutionPi
 
             switch (varInfo.Length)
             {
-                case 1: byteLen = 0; break;        // Bit
+                case 1: byteLen = 0; break;         // bit
                 case 8: byteLen = 1; break;
                 case 16: byteLen = 2; break;
                 case 32: byteLen = 4; break;
-                default:                            // strings, z.B. IP-Adresse
+                default:                            // strings, e.g. IP address
                     byteLen = -varInfo.Length / 8;
                     break;
             }

@@ -1,11 +1,11 @@
-﻿using System;
+﻿using IctBaden.RevolutionPi;
+using IctBaden.RevolutionPi.Configuration;
+using IctBaden.RevolutionPi.Model;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using IctBaden.RevolutionPi;
-using IctBaden.RevolutionPi.Configuration;
-using IctBaden.RevolutionPi.Model;
 
 namespace PiTest
 {
@@ -17,7 +17,6 @@ namespace PiTest
 
             if (args.Length == 0 || args.Any(a => new Regex(@"^-[\?hH]$").IsMatch(a)))
             {
-                // ReSharper disable once AssignNullToNotNullAttribute
                 var fileVersionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
                 Console.WriteLine($"PiTest V{fileVersionInfo.FileVersion}");
                 Console.WriteLine(" -s               Display system state");

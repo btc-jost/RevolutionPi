@@ -1,11 +1,11 @@
-﻿using System;
+﻿using IctBaden.RevolutionPi.Model;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using IctBaden.RevolutionPi.Model;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace IctBaden.RevolutionPi.Configuration
 {
@@ -38,7 +38,7 @@ namespace IctBaden.RevolutionPi.Configuration
             }
             catch (Exception ex)
             {
-                Trace.TraceError($"RevPi.Configuration.Open failed: {ex.Message}");
+                Trace.TraceError($"PiConfiguration.Open failed: {ex.Message}");
             }
             return false;
         }

@@ -1,5 +1,4 @@
-﻿// ReSharper disable UnusedMember.Global
-namespace IctBaden.RevolutionPi.Model
+﻿namespace IctBaden.RevolutionPi.Model
 {
     public class ProductType
     {
@@ -9,7 +8,5 @@ namespace IctBaden.RevolutionPi.Model
         {
             Value = value;
         }
-
-
     }
 }

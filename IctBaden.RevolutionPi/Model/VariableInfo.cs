@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
 using System.Diagnostics;
-using Newtonsoft.Json.Linq;
-// ReSharper disable AutoPropertyCanBeMadeGetOnly.Local
 
 namespace IctBaden.RevolutionPi.Model
 {
@@ -10,7 +9,7 @@ namespace IctBaden.RevolutionPi.Model
     {
         public VariableType Type { get; private set; }
         public int Index { get; private set; }
-        public string  Name { get; set; }
+        public string Name { get; set; }
         public object DefaultValue { get; set; }
         public byte BitOffset { get; set; }              // 0-7 bit position, >= 8 whole byte
         public ushort Length { get; set; }               // length of the variable in bits. Possible values are 1, 8, 16 and 32

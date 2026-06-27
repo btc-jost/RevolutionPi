@@ -1,8 +1,6 @@
-﻿using System.Diagnostics;
+﻿using IctBaden.RevolutionPi.Model;
+using System.Diagnostics;
 using System.Text;
-using IctBaden.RevolutionPi.Model;
-// ReSharper disable UnusedMember.Global
-// ReSharper disable MemberCanBePrivate.Global
 
 namespace IctBaden.RevolutionPi
 {
@@ -14,8 +12,6 @@ namespace IctBaden.RevolutionPi
         /// <summary>
         /// Linux device name full path
         /// </summary>
-        // ReSharper disable once FieldCanBeMadeReadOnly.Global
-        // ReSharper disable once ConvertToConstant.Global
         public string PiControlDeviceName = "/dev/piControl0";
 
         private int _piControlHandle = -1;
@@ -160,7 +156,7 @@ namespace IctBaden.RevolutionPi
                     return data[0];
                 case 2:
                     return (ushort)(data[0] + (data[1] * 0x100));
-                case 3:
+                case 4:
                     return data[0] +
                            (ulong)(data[1] * 0x100) +
                            (ulong)(data[2] * 0x10000) +
@@ -181,7 +177,7 @@ namespace IctBaden.RevolutionPi
                 case 8: byteLen = 1; break;
                 case 16: byteLen = 2; break;
                 case 32: byteLen = 4; break;
-                default:                            // strings, z.B. IP-address
+                default:                            // strings, e.g. IP address
                     byteLen = -varInfo.Length / 8;
                     break;
             }

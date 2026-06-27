@@ -1,12 +1,12 @@
-﻿using System;
+﻿using IctBaden.RevolutionPi;
+using IctBaden.RevolutionPi.Configuration;
+using IctBaden.RevolutionPi.Model;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
-using IctBaden.RevolutionPi;
-using IctBaden.RevolutionPi.Configuration;
-using IctBaden.RevolutionPi.Model;
 
 namespace PiTest
 {
@@ -17,11 +17,10 @@ namespace PiTest
     {
         private static void Main(string[] args)
         {
-            Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
+            System.Diagnostics.Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
 
             if (args.Length == 0 || args.Any(a => new Regex(@"^-[\?hH]$").IsMatch(a)))
             {
-                // ReSharper disable once AssignNullToNotNullAttribute
                 var fileVersionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
                 Console.WriteLine($"PiTest V{fileVersionInfo.FileVersion}");
                 Console.WriteLine(" -s               Display system state");
@@ -148,7 +147,7 @@ namespace PiTest
 
         private static void BlinkLeds(RevPiLeds leds)
         {
-            var pattern = new []
+            var pattern = new[]
             {
                 new [] {LedColor.Red, LedColor.Off},
                 new [] {LedColor.Off, LedColor.Red},
@@ -158,12 +157,12 @@ namespace PiTest
                 new [] {LedColor.Off, LedColor.Orange}
             };
 
-            for(var ix = 0; ix < 10; ix++) foreach (var ledColors in pattern)
-            {
-                leds.SystemLedA1 = ledColors[0];
-                leds.SystemLedA2 = ledColors[1];
-                Thread.Sleep(500);
-            }
+            for (var ix = 0; ix < 10; ix++) foreach (var ledColors in pattern)
+                {
+                    leds.SystemLedA1 = ledColors[0];
+                    leds.SystemLedA2 = ledColors[1];
+                    Thread.Sleep(500);
+                }
 
             leds.SystemLedA1 = LedColor.Off;
             leds.SystemLedA2 = LedColor.Off;

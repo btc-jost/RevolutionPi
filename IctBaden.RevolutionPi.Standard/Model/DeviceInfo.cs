@@ -1,10 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-// ReSharper disable UnusedMember.Global
 
 namespace IctBaden.RevolutionPi.Model
 {
@@ -24,8 +23,8 @@ namespace IctBaden.RevolutionPi.Model
         public string Comment { get; set; }
         public ushort Offset { get; set; }
 
-// never assigned
-#pragma warning  disable 0649
+        // never assigned
+#pragma warning disable 0649
         [JsonProperty("inp")]
         private JObject _inp;
         [JsonProperty("out")]

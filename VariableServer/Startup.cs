@@ -1,12 +1,11 @@
-﻿using System.Diagnostics;
+﻿using Microsoft.AspNet.WebApi.Extensions.Compression.Server;
+using Owin;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Extensions.Compression.Core.Compressors;
 using System.Threading;
 using System.Web.Http;
 using System.Web.Http.Cors;
-using Microsoft.AspNet.WebApi.Extensions.Compression.Server;
-using Owin;
-// ReSharper disable UnusedMember.Global
 
 namespace VariableServer
 {
@@ -16,7 +15,6 @@ namespace VariableServer
 
         public void Configuration(IAppBuilder app)
         {
-            // ReSharper disable once AssignNullToNotNullAttribute
             if (app.Properties.TryGetValue(typeof(HttpListener).FullName, out object httpListener)
                 && httpListener is HttpListener listener)
             {
