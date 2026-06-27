@@ -1,8 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using IctBaden.RevolutionPi.Model;
 
 namespace IctBaden.RevolutionPi
 {
+    // P/Invoke into the piControl driver; only runs on the RevPi (aarch64 Linux),
+    // so it cannot be exercised by the unit tests.
+    [ExcludeFromCodeCoverage]
     internal static class Interop
     {
         internal const int O_RDONLY = 0x00000000;

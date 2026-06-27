@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using IctBaden.RevolutionPi.Model;
 
@@ -20,6 +21,7 @@ namespace IctBaden.RevolutionPi
         /// Opens the driver connection.
         /// </summary>
         /// <returns>True if connection successfully opened</returns>
+        [ExcludeFromCodeCoverage]  // requires the piControl driver (on-device only)
         public bool Open()
         {
             if (!IsOpen)
@@ -32,11 +34,13 @@ namespace IctBaden.RevolutionPi
         /// <summary>
         /// True if connection to the device driver established
         /// </summary>
+        [ExcludeFromCodeCoverage]  // reflects on-device driver handle state
         public bool IsOpen => _piControlHandle >= 0;
 
         /// <summary>
         /// Closes the driver connection.
         /// </summary>
+        [ExcludeFromCodeCoverage]  // requires the piControl driver (on-device only)
         public void Close()
         {
             if (!IsOpen) return;
@@ -49,6 +53,7 @@ namespace IctBaden.RevolutionPi
         /// Resets the piControl driver process.
         /// </summary>
         /// <returns>True if reset is successful</returns>
+        [ExcludeFromCodeCoverage]  // requires the piControl driver (on-device only)
         public bool Reset()
         {
             if (!Open()) return false;
@@ -62,6 +67,7 @@ namespace IctBaden.RevolutionPi
         /// <param name="offset">Position to read from</param>
         /// <param name="length">Byte count to read</param>
         /// <returns>Data read or null in case of failure</returns>
+        [ExcludeFromCodeCoverage]  // requires the piControl driver (on-device only)
         public byte[]? Read(int offset, int length)
         {
             if (!IsOpen) return null;
@@ -82,6 +88,7 @@ namespace IctBaden.RevolutionPi
         /// <param name="offset">Position to write to</param>
         /// <param name="data">Data to be written</param>
         /// <returns>Bytes written</returns>
+        [ExcludeFromCodeCoverage]  // requires the piControl driver (on-device only)
         public int Write(int offset, byte[] data)
         {
             if (!IsOpen) return 0;
@@ -101,6 +108,7 @@ namespace IctBaden.RevolutionPi
         /// <param name="address">Address of the byte in the process image</param>
         /// <param name="bit">bit position (0-7)</param>
         /// <returns>Bit value</returns>
+        [ExcludeFromCodeCoverage]  // requires the piControl driver (on-device only)
         public bool GetBitValue(ushort address, byte bit)
         {
             var bitValue = new SpiValue
@@ -126,6 +134,7 @@ namespace IctBaden.RevolutionPi
         /// <param name="address">Address of the byte in the process image</param>
         /// <param name="bit">bit position (0-7)</param>
         /// <param name="value"></param>
+        [ExcludeFromCodeCoverage]  // requires the piControl driver (on-device only)
         public void SetBitValue(ushort address, byte bit, bool value)
         {
             var bitValue = new SpiValue
@@ -166,6 +175,7 @@ namespace IctBaden.RevolutionPi
             }
         }
 
+        [ExcludeFromCodeCoverage]  // reads via the on-device driver
         public VarData? ReadVariable(VariableInfo varInfo)
         {
             var deviceOffset = varInfo.Device?.Offset ?? 0;
