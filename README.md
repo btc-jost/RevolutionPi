@@ -30,6 +30,17 @@ See GitHub repository https://github.com/RevolutionPi/piControl for more informa
 * [Kernel module for data exchange with RevPi I/O-Modules and Gateways (on GitHub)](https://github.com/RevolutionPi/piControl)
 * Bugs and Comments - please use GitHub issue report
 
+#### Open topics
+* **On-device verification / newer hardware.** The `libc` P/Invoke path (`lseek`/`read`/`write`/`ioctl`)
+  and the aarch64 width fixes can only be fully verified on a real RevolutionPi — they are not exercised by
+  the unit tests or off-device. The system-LED byte layout (A1=bits0-1, A2=2-3, A3=4-5, Watchdog=bit7) is
+  hardware-specific and **not** defined in `piControl.h`; newer models (RevPi Connect 4 / Flat) use more /
+  RGB LEDs with a different process-image layout, so `RevPiLeds` must be verified against the actual device
+  before relying on it there.
+* **NuGet packaging.** The library is currently consumed via `ProjectReference`
+  (`GeneratePackageOnBuild=false`). Publishing a btc-owned NuGet package is deferred until there is a second
+  consumer that needs it.
+
 #
 #### License
 This program is free software: you can redistribute it and/or modify
