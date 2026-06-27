@@ -10,6 +10,8 @@ nuget
 MigrationBackup/
 *.bak
 coverage/
+# raw RevPi config exports may contain serials/MACs/customer data - never commit
+*.rsc
 
 *.suo
 *.user
