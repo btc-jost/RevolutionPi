@@ -1,11 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.Json.Nodes;
 using IctBaden.RevolutionPi.Model;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace IctBaden.RevolutionPi.Configuration
 {
@@ -13,7 +12,7 @@ namespace IctBaden.RevolutionPi.Configuration
     {
         public string RevPiConfigFileName = "/etc/revpi/config.rsc";
 
-        private JObject _config;
+        private JsonObject? _config;
 
         /// <summary>
         /// Opens the configuration file (RevPiConfigFileName)
@@ -33,12 +32,12 @@ namespace IctBaden.RevolutionPi.Configuration
                     return false;
                 }
 
-                _config = JsonConvert.DeserializeObject<JObject>(json);
-                return true;
+                _config = JsonNode.Parse(json) as JsonObject;
+                return _config != null;
             }
             catch (Exception ex)
             {
-                Trace.TraceError($"RevPi.Configuration.Open failed: {ex.Message}");
+                Trace.TraceError($"PiConfiguration.Open failed: {ex.Message}");
             }
             return false;
         }
@@ -63,9 +62,13 @@ namespace IctBaden.RevolutionPi.Configuration
                     Open();
                     try
                     {
-                        _devices = _config["Devices"].Children()
-                            .Select(jt => jt.ToObject<DeviceInfo>())
-                            .ToList();
+                        if (_config?["Devices"] is JsonArray devices)
+                        {
+                            _devices = devices
+                                .OfType<JsonObject>()
+                                .Select(DeviceInfo.FromJson)
+                                .ToList();
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -77,15 +80,14 @@ namespace IctBaden.RevolutionPi.Configuration
         }
 
         /// <summary>
-        /// Retrieve information about a configured variable by iot's name.
+        /// Retrieve information about a configured variable by its name.
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">Variable name</param>
         /// <returns>Variable info for the given variable or null if not found.</returns>
-        public VariableInfo GetVariable(string name)
+        public VariableInfo? GetVariable(string name)
         {
             return Devices.SelectMany(d => d.Inputs).FirstOrDefault(v => v.Name == name) ??
                    Devices.SelectMany(d => d.Outputs).FirstOrDefault(v => v.Name == name);
         }
-
     }
 }

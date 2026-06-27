@@ -1,4 +1,4 @@
-﻿namespace VariableServer.Model
+namespace VariableServer.Model
 {
     public class VarDeviceInfo
     {

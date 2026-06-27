@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
@@ -17,11 +17,10 @@ namespace PiTest
     {
         private static void Main(string[] args)
         {
-            Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
+            System.Diagnostics.Trace.Listeners.Add(new TextWriterTraceListener(Console.Out));
 
             if (args.Length == 0 || args.Any(a => new Regex(@"^-[\?hH]$").IsMatch(a)))
             {
-                // ReSharper disable once AssignNullToNotNullAttribute
                 var fileVersionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetEntryAssembly().Location);
                 Console.WriteLine($"PiTest V{fileVersionInfo.FileVersion}");
                 Console.WriteLine(" -s               Display system state");
@@ -148,7 +147,7 @@ namespace PiTest
 
         private static void BlinkLeds(RevPiLeds leds)
         {
-            var pattern = new []
+            var pattern = new[]
             {
                 new [] {LedColor.Red, LedColor.Off},
                 new [] {LedColor.Off, LedColor.Red},
@@ -158,7 +157,7 @@ namespace PiTest
                 new [] {LedColor.Off, LedColor.Orange}
             };
 
-            for(var ix = 0; ix < 10; ix++) foreach (var ledColors in pattern)
+            for (var ix = 0; ix < 10; ix++) foreach (var ledColors in pattern)
             {
                 leds.SystemLedA1 = ledColors[0];
                 leds.SystemLedA2 = ledColors[1];
@@ -202,7 +201,7 @@ namespace PiTest
             foreach (var device in config.Devices)
             {
                 Console.WriteLine($"Device {device.Name}  [{device.Type}]");
-                Console.WriteLine($"  Address: {device.Offset}, Type: {device.ProductType} (0x{device.ProductType:X2}) {RevPiProductNames.GetProductName(device.ProductType)}");
+                Console.WriteLine($"  Address: {device.Offset}, Type: {device.ProductType.Value} (0x{device.ProductType.Value:X2}) {device.ProductType.Name}");
                 foreach (var variable in device.Inputs)
                 {
                     Console.WriteLine($"    I[{variable.Address:D4}]  {variable.Name} : {variable.LengthText}");

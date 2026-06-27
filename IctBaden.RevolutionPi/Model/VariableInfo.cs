@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
 using System.Diagnostics;
-using Newtonsoft.Json.Linq;
-// ReSharper disable AutoPropertyCanBeMadeGetOnly.Local
+using System.Text.Json.Nodes;
 
 namespace IctBaden.RevolutionPi.Model
 {
@@ -10,17 +8,17 @@ namespace IctBaden.RevolutionPi.Model
     {
         public VariableType Type { get; private set; }
         public int Index { get; private set; }
-        public string  Name { get; set; }
-        public object DefaultValue { get; set; }
+        public string Name { get; set; }
+        public object? DefaultValue { get; set; }
         public byte BitOffset { get; set; }              // 0-7 bit position, >= 8 whole byte
         public ushort Length { get; set; }               // length of the variable in bits. Possible values are 1, 8, 16 and 32
         public ushort Address { get; set; }              // Address of the byte in the process image
         public bool Export { get; set; }
         //  "0000",
-        public string Unknown { get; set; }               //"0001"
-        public string Comment { get; set; }
+        public string? Unknown { get; set; }              //"0001"
+        public string? Comment { get; set; }
 
-        public DeviceInfo Device { get; set; }
+        public DeviceInfo? Device { get; set; }
 
         public string LengthText
         {
@@ -37,26 +35,23 @@ namespace IctBaden.RevolutionPi.Model
             }
         }
 
-        public VariableInfo(DeviceInfo device, VariableType type, int index, IList<JToken> json)
+        /// <summary>
+        /// Builds a variable from a config.rsc entry: an 8-element JSON array
+        /// [name, default, length, address, export, unknown, comment, bitOffset].
+        /// </summary>
+        public VariableInfo(DeviceInfo device, VariableType type, int index, JsonArray json)
         {
             Device = device;
             Type = type;
             Index = index;
-            Name = json[0].Value<string>();
-            DefaultValue = json[1].Value<object>();
-            Length = json[2].Value<ushort>();
-            Address = json[3].Value<ushort>();
-            Export = json[4].Value<bool>();
-            Unknown = json[5].Value<string>();
-            Comment = json[6].Value<string>();
-            try
-            {
-                BitOffset = json[7].Value<byte>();
-            }
-            catch
-            {
-                BitOffset = 0;
-            }
+            Name = JsonScalar.GetString(json[0]) ?? string.Empty;
+            DefaultValue = JsonScalar.GetScalar(json[1]);
+            Length = JsonScalar.GetUInt16(json[2]);
+            Address = JsonScalar.GetUInt16(json[3]);
+            Export = JsonScalar.GetBool(json[4]);
+            Unknown = JsonScalar.GetString(json[5]);
+            Comment = JsonScalar.GetString(json[6]);
+            BitOffset = json.Count > 7 ? JsonScalar.GetByte(json[7]) : (byte)0;
         }
     }
 }

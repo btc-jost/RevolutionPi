@@ -1,59 +1,76 @@
-﻿using System.Runtime.InteropServices;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using IctBaden.RevolutionPi.Model;
-
-using off_t = System.Int32;
-
-// ReSharper disable UnusedMember.Global
 
 namespace IctBaden.RevolutionPi
 {
+    // P/Invoke into the piControl driver; only runs on the RevPi (aarch64 Linux),
+    // so it cannot be exercised by the unit tests.
+    [ExcludeFromCodeCoverage]
     internal static class Interop
     {
-        // ReSharper disable InconsistentNaming
-        // ReSharper disable UnusedMember.Local
-        private const int O_RDONLY = 00;
-        private const int O_WRONLY = 01;
-        internal const int O_RDWR = 02;
+        internal const int O_RDONLY = 0x00000000;
+        internal const int O_WRONLY = 0x00000001;
+        internal const int O_RDWR = 0x00000002;
+        internal const int O_CREAT = 0x00000100;
+        internal const int O_TRUNC = 0x00001000;
+        internal const int O_APPEND = 0x00002000;
+        internal const int O_NONBLOCK = 0x00004000;
+        internal const int O_DSYNC = 0x00010000;
+        internal const int O_DIRECT = 0x00040000;
 
         internal const int SEEK_SET = 0;
-        private const int SEEK_CUR = 1;
-        private const int SEEK_END = 2;
+        internal const int SEEK_CUR = 1;
+        internal const int SEEK_END = 2;
 
-        [DllImport("libc", SetLastError = true, CharSet = CharSet.Auto)]
+        // The libc path argument is a single-byte char string on Linux.
+        [DllImport("libc", SetLastError = true, CharSet = CharSet.Ansi)]
         internal static extern int open(string fileName, int mode);
 
-        [DllImport("libc", SetLastError = true, CharSet = CharSet.Auto)]
+        [DllImport("libc", SetLastError = true)]
         internal static extern int close(int file);
 
-        [DllImport("libc", SetLastError = true, CharSet = CharSet.Auto)]
-        internal static extern off_t lseek(int file, int offset, int whence);
+        // off_t / ssize_t are 64-bit on aarch64 -> use nint.
+        [DllImport("libc", SetLastError = true)]
+        internal static extern nint lseek(int file, nint offset, int whence);
 
-        [DllImport("libc", SetLastError = true, CharSet = CharSet.Auto)]
-        internal static extern int read(int file, [MarshalAs(UnmanagedType.LPArray)] byte[] buffer, int count);
-        [DllImport("libc", SetLastError = true, CharSet = CharSet.Auto)]
-        internal static extern int write(int file, [MarshalAs(UnmanagedType.LPArray)] byte[] buffer, int count);
+        // size_t (count) is 64-bit, ssize_t (return) is 64-bit on aarch64.
+        [DllImport("libc", SetLastError = true)]
+        internal static extern nint read(int file, [MarshalAs(UnmanagedType.LPArray)] byte[] buffer, nuint count);
+        [DllImport("libc", SetLastError = true)]
+        internal static extern nint write(int file, [MarshalAs(UnmanagedType.LPArray)] byte[] buffer, nuint count);
 
 
         // see ioctl.h
-        private const uint IOCPARM_MASK = 0x1FFF;		/* parameter length, at most 13 bits */
+        internal const uint IOCPARM_MASK = 0x1fff;		/* parameter length, at most 13 bits */
 
-        private const uint IOC_VOID = 0x00000000;   /* no parameters */
-        private const uint IOC_OUT = 0x40000000;    /* copy out parameters */
-        private const uint IOC_IN = 0x80000000;     /* copy in parameters */
-        private const uint IOC_INOUT = (IOC_IN | IOC_OUT);
+        // IOC_VOID MUST be 0. The piControl driver matches ioctls with a plain
+        //   switch (prg_nr) { case KB_GET_VALUE: ... default: return -EINVAL; }
+        // where KB_* == _IO('K', n) == 0x00004B0n (Linux _IO, dir = _IOC_NONE = 0).
+        // The BSD/Winsock value 0x20000000 (an old .NET-port artifact) would yield
+        // 0x20004B0n, which matches no case -> every ioctl fails with EINVAL.
+        // Note: this only affects Reset/GetBitValue/SetBitValue; the LED path uses
+        // lseek+read/write, not ioctl, so it is unaffected either way.
+        internal const uint IOC_VOID = 0x00000000;   /* no parameters */
+        internal const uint IOC_OUT = 0x40000000;    /* copy out parameters */
+        internal const uint IOC_IN = 0x80000000;     /* copy in parameters */
+        internal const uint IOC_INOUT = (IOC_IN | IOC_OUT);
+        internal const uint IOC_DIRMASK = 0xe0000000;    /* mask for IN/OUT/VOID */
 
-        private static uint _IOC(uint inout, uint group, uint num, uint len) =>
+        internal static uint _IOC(uint inout, uint group, uint num, uint len) =>
             (inout | ((len & IOCPARM_MASK) << 16) | ((group) << 8) | (num));
-        private static uint _IO(uint g, uint n) => _IOC(IOC_VOID, (g), (n), 0);
+        internal static uint _IO(uint g, uint n) => _IOC(IOC_VOID, (g), (n), 0);
 
-        [DllImport("libc", EntryPoint = "ioctl", SetLastError = true, CharSet = CharSet.Auto)]
-        internal static extern int ioctl_void(int file, uint cmd);
-        [DllImport("libc", EntryPoint = "ioctl", SetLastError = true, CharSet = CharSet.Auto)]
-        internal static extern int ioctl_value(int file, uint cmd, SpiValue value);
+        // The ioctl request argument is unsigned long = 64-bit on aarch64 -> use nuint
+        // (the 32-bit command value widens implicitly).
+        [DllImport("libc", EntryPoint = "ioctl", SetLastError = true)]
+        internal static extern int ioctl_void(int file, nuint cmd);
+        [DllImport("libc", EntryPoint = "ioctl", SetLastError = true)]
+        internal static extern int ioctl_value(int file, nuint cmd, SpiValue value);
 
 
         // piControl.h
-        private const uint KB_IOC_MAGIC = 'K';
+        internal const uint KB_IOC_MAGIC = 'K';
         internal static readonly uint KB_RESET = _IO(KB_IOC_MAGIC, 12);  // reset the piControl driver including the config file
         internal static readonly uint KB_GET_DEVICE_INFO_LIST = _IO(KB_IOC_MAGIC, 13); // get the device info of all detected devices
         internal static readonly uint KB_GET_DEVICE_INFO = _IO(KB_IOC_MAGIC, 14);  // get the device info of one device
@@ -67,8 +84,5 @@ namespace IctBaden.RevolutionPi
 
         internal static readonly uint KB_WAIT_FOR_EVENT = _IO(KB_IOC_MAGIC, 50);  // wait for an event. This call is normally blocking
         internal const uint KB_EVENT_RESET = 1;		// piControl was reset, reload configuration
-
-        // ReSharper restore UnusedMember.Local
-        // ReSharper restore InconsistentNaming
     }
 }

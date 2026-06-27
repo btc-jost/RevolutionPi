@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, updates ]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build & format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore RevolutionPi.sln
+
+      - name: Build (Release, warnings as errors)
+        run: dotnet build RevolutionPi.sln -c Release --no-restore -warnaserror
+
+      - name: Verify formatting
+        run: dotnet format RevolutionPi.sln --verify-no-changes --no-restore
+
+      # Coverage needs PDBs; the lib uses DebugType=none in Release, so collect in Debug.
+      - name: Test with coverage
+        run: dotnet test RevolutionPi.sln -c Debug --collect:"XPlat Code Coverage" --results-directory ./coverage --verbosity minimal
+
+      - name: Coverage report
+        if: always()
+        run: |
+          dotnet tool restore
+          dotnet reportgenerator -reports:"coverage/**/coverage.cobertura.xml" -targetdir:"coverage/report" -reporttypes:"Html;MarkdownSummaryGithub"
+          cat coverage/report/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/report
