@@ -37,10 +37,11 @@ Confirmed **64-bit (aarch64)** RevPi image. This matters for the P/Invoke widths
   `dotnet test` runs them: `ConfigurationTests`, `ConvertDataToValueTests`, `RevPiLedsTests`,
   `StructLayoutTests`.
 - `PiTest.Core/` — net10 **interactive console sample** (the live one; `linux-arm64`).
-- `VariableServer/` — REST debug tool exposing RevPi variables (`GET /variables`, `/variables/{name}`).
-  v4.8 + OWIN/`System.Web.Http` + Mono — **parked / removed from `RevolutionPi.sln`** because net48 can't
-  consume the net10 lib (NU1201). Source kept; a **net10 ASP.NET Core minimal-API port** is the way to
-  bring it back (deferred — see Known issues).
+- `VariableServer/` — REST debug tool exposing RevPi variables (`GET /`, `/variables`,
+  `/variables/{name}`, `/variables/{name}/{prop}`). **Ported to ASP.NET Core (net10) minimal API**
+  (`Microsoft.NET.Sdk.Web`, top-level `Program.cs`, System.Text.Json camelCase, response compression +
+  permissive CORS). Defaults to `http://*:8000` (override via `--urls`). Startup tolerates a missing
+  driver/config so it runs off-device. In `RevolutionPi.sln` only — **not** in the parent slnx/CI.
 
 > Pruned in the hardening pass: `IctBaden.RevolutionPi.Standard` (netstandard2.0 duplicate of the lib),
 > legacy v4.8 `PiTest` (superseded by `PiTest.Core`), and committed binaries/cruft (`NuGet.exe`,
@@ -84,7 +85,6 @@ migration (`RevPiLeds` A3/Watchdog, `ConvertDataToValue` case-4 fix), then the *
 
 ## Deferred
 
-- **VariableServer net10 ASP.NET Core port** — parked (removed from `RevolutionPi.sln`; source kept).
 - `<Nullable>enable</Nullable>` on the lib; System.Text.Json migration; publishing the NuGet package.
 - LED byte layout for newer RevPi models (Connect 4 / Flat use more / RGB LEDs) — hardware-specific, not
   in `piControl.h`; verify on the device.

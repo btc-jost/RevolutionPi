@@ -1,12 +1,12 @@
-﻿using IctBaden.RevolutionPi;
-using IctBaden.RevolutionPi.Configuration;
-using IctBaden.RevolutionPi.Model;
 using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
+using IctBaden.RevolutionPi;
+using IctBaden.RevolutionPi.Configuration;
+using IctBaden.RevolutionPi.Model;
 
 namespace PiTest
 {
@@ -158,11 +158,11 @@ namespace PiTest
             };
 
             for (var ix = 0; ix < 10; ix++) foreach (var ledColors in pattern)
-                {
-                    leds.SystemLedA1 = ledColors[0];
-                    leds.SystemLedA2 = ledColors[1];
-                    Thread.Sleep(500);
-                }
+            {
+                leds.SystemLedA1 = ledColors[0];
+                leds.SystemLedA2 = ledColors[1];
+                Thread.Sleep(500);
+            }
 
             leds.SystemLedA1 = LedColor.Off;
             leds.SystemLedA2 = LedColor.Off;

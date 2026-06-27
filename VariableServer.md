@@ -1,31 +1,32 @@
 # Variable Server
 The Variable Server is a simple REST-API http-server providing access to the Revolution Pi variables.
+It is an **ASP.NET Core (net10) minimal-API** application.
 
 ## Requirements
-* Mono 5.x installed [see "Installing Mono"](InstallMono.md)
+* .NET 10 runtime on the RevolutionPi (aarch64).
 
 ## Usage
-Create VariableServer.exe from sources using VisualStudio (Community Edition) on a PC
-or load the prebuild executables as ZIP file.
+Build / publish from sources:
 
-[Prebuild executable: VariableServer.zip](VariableServer.zip)
+    dotnet publish VariableServer -c Release -r linux-arm64
 
-Copy project output or zip contents to a folder on the RevolutionPi.
+Copy the publish output to a folder on the RevolutionPi and start it:
 
-Start the server using the following commandline
-
-    mono VariableServer.exe
+    dotnet VariableServer.dll                 # default http://*:8000
+    dotnet VariableServer.dll --urls http://*:9000   # custom port
 
 ## API
-Open Browser and navigate to http://localhost:8000/    
+Open a browser and navigate to http://localhost:8000/    
 The server should answer with the default document
 
 **GET /**
 ```json
 {
   "service": "RevolutionPi Variable Server",
+  "version": "1.0.0.0",
   "varlist": "GET ~/variables",
-  "readvar": "GET ~/variables/{varname}"
+  "readvar": "GET ~/variables/{varname}",
+  "readprop": "GET ~/variables/{varname}/{propname}"
 }
 ```
 

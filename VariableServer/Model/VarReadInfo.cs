@@ -1,6 +1,3 @@
-﻿using Newtonsoft.Json;
-using System.Net.Http;
-
 namespace VariableServer.Model
 {
     public class VarReadInfo
@@ -18,8 +15,5 @@ namespace VariableServer.Model
         public VarDeviceInfo Device { get; set; }
         public int[] Data { get; set; }
         public object Value { get; set; }
-
-        [JsonIgnore]
-        public HttpResponseMessage HttpResponse { get; set; }
     }
 }
