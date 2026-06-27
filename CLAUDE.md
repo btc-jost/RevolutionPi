@@ -98,5 +98,7 @@ migration (`RevPiLeds` A3/Watchdog, `ConvertDataToValue` case-4 fix), then the *
 - **The LED byte layout is hardware-specific** and is **not** defined in `piControl.h`. Newer RevPi models
   (Connect 4 / Flat) use more / RGB LEDs with a different process-image layout. Verify against the actual
   device before relying on it.
-- This submodule has its own solution `RevolutionPi.sln` (lib + `PiTest.Core` + test project); the parent
-  builds the lib + test project via the parent slnx.
+- This submodule has its own solution `RevolutionPi.sln` (lib + `PiTest.Core` + `VariableServer` + test
+  project) and its **own CI** (`.github/workflows/ci.yml`, ubuntu): restore → build Release `-warnaserror`
+  → `dotnet format --verify-no-changes` → `dotnet test`, on push to `master`/`updates` and PRs. The parent
+  separately builds the lib + test project via its slnx.
