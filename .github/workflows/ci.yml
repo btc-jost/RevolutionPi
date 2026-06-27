@@ -31,5 +31,20 @@ jobs:
       - name: Verify formatting
         run: dotnet format RevolutionPi.sln --verify-no-changes --no-restore
 
-      - name: Test
-        run: dotnet test RevolutionPi.sln -c Release --no-build --verbosity minimal
+      # Coverage needs PDBs; the lib uses DebugType=none in Release, so collect in Debug.
+      - name: Test with coverage
+        run: dotnet test RevolutionPi.sln -c Debug --collect:"XPlat Code Coverage" --results-directory ./coverage --verbosity minimal
+
+      - name: Coverage report
+        if: always()
+        run: |
+          dotnet tool restore
+          dotnet reportgenerator -reports:"coverage/**/coverage.cobertura.xml" -targetdir:"coverage/report" -reporttypes:"Html;MarkdownSummaryGithub"
+          cat coverage/report/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/report

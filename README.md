@@ -24,6 +24,23 @@ See GitHub repository https://github.com/RevolutionPi/piControl for more informa
 #### Development Requirements
 * .NET 10 SDK
 
+#### Tests & code coverage
+Run the unit tests (`IctBaden.RevolutionPi.Test`, NUnit):
+
+    dotnet test RevolutionPi.sln
+
+Collect coverage (Coverlet) and generate an HTML report (ReportGenerator, restored as a local tool).
+Coverage must run in **Debug** — the library uses `DebugType=none` in Release, so there are no PDBs to
+instrument:
+
+    dotnet test RevolutionPi.sln -c Debug --collect:"XPlat Code Coverage" --results-directory ./coverage
+    dotnet tool restore
+    dotnet reportgenerator -reports:"coverage/**/coverage.cobertura.xml" -targetdir:"coverage/report" -reporttypes:Html
+
+Open `coverage/report/index.html`. CI runs the same flow and publishes the report as a build artifact.
+The driver/`libc` P/Invoke paths (`Interop`, most of `PiControl`) are not exercised off-device, so overall
+coverage is dominated by the testable parsing/LED logic.
+
 #### More Information
 * [RevolutionPi Homepage](https://revolution.kunbus.de/)
 * [API Reference](ApiReference.md)

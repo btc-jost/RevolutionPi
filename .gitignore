@@ -9,6 +9,7 @@ nuget
 .fake
 MigrationBackup/
 *.bak
+coverage/
 
 *.suo
 *.user

@@ -105,5 +105,9 @@ migration (`RevPiLeds` A3/Watchdog, `ConvertDataToValue` case-4 fix), then the *
   device before relying on it.
 - This submodule has its own solution `RevolutionPi.sln` (lib + `PiTest.Core` + `VariableServer` + test
   project) and its **own CI** (`.github/workflows/ci.yml`, ubuntu): restore → build Release `-warnaserror`
-  → `dotnet format --verify-no-changes` → `dotnet test`, on push to `master`/`updates` and PRs. The parent
-  separately builds the lib + test project via its slnx.
+  → `dotnet format --verify-no-changes` → test with coverage → ReportGenerator HTML (uploaded as an
+  artifact, summary in the job page), on push to `master`/`updates` and PRs. The parent separately builds
+  the lib + test project via its slnx.
+- **Code coverage** (Coverlet + ReportGenerator, the latter pinned in `.config/dotnet-tools.json`) must run
+  in **Debug** — the lib's Release `DebugType=none` strips the PDBs Coverlet needs. See README → *Tests &
+  code coverage*.
