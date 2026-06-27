@@ -1,6 +1,5 @@
-﻿using IctBaden.RevolutionPi.Model;
 using System.Runtime.InteropServices;
-using off_t = System.Int32;
+using IctBaden.RevolutionPi.Model;
 
 namespace IctBaden.RevolutionPi
 {
@@ -20,25 +19,29 @@ namespace IctBaden.RevolutionPi
         internal const int SEEK_CUR = 1;
         internal const int SEEK_END = 2;
 
-        [DllImport("libc", SetLastError = true, CharSet = CharSet.Auto)]
+        // The libc path argument is a single-byte char string on Linux.
+        [DllImport("libc", SetLastError = true, CharSet = CharSet.Ansi)]
         internal static extern int open(string fileName, int mode);
 
-        [DllImport("libc", SetLastError = true, CharSet = CharSet.Auto)]
+        [DllImport("libc", SetLastError = true)]
         internal static extern int close(int file);
 
-        [DllImport("libc", SetLastError = true, CharSet = CharSet.Auto)]
-        internal static extern off_t lseek(int file, int offset, int whence);
+        // off_t / ssize_t are 64-bit on aarch64 -> use nint.
+        [DllImport("libc", SetLastError = true)]
+        internal static extern nint lseek(int file, nint offset, int whence);
 
-        [DllImport("libc", SetLastError = true, CharSet = CharSet.Auto)]
-        internal static extern int read(int file, [MarshalAs(UnmanagedType.LPArray)] byte[] buffer, int count);
-        [DllImport("libc", SetLastError = true, CharSet = CharSet.Auto)]
-        internal static extern int write(int file, [MarshalAs(UnmanagedType.LPArray)] byte[] buffer, int count);
+        // size_t (count) is 64-bit, ssize_t (return) is 64-bit on aarch64.
+        [DllImport("libc", SetLastError = true)]
+        internal static extern nint read(int file, [MarshalAs(UnmanagedType.LPArray)] byte[] buffer, nuint count);
+        [DllImport("libc", SetLastError = true)]
+        internal static extern nint write(int file, [MarshalAs(UnmanagedType.LPArray)] byte[] buffer, nuint count);
 
 
         // see ioctl.h
         internal const uint IOCPARM_MASK = 0x1fff;		/* parameter length, at most 13 bits */
 
-        internal const uint IOC_VOID = 0x20000000;   /* no parameters */
+        // Linux _IO uses _IOC_NONE = 0 (not the BSD 0x20000000); see <asm-generic/ioctl.h>.
+        internal const uint IOC_VOID = 0x00000000;   /* no parameters */
         internal const uint IOC_OUT = 0x40000000;    /* copy out parameters */
         internal const uint IOC_IN = 0x80000000;     /* copy in parameters */
         internal const uint IOC_INOUT = (IOC_IN | IOC_OUT);
@@ -48,10 +51,12 @@ namespace IctBaden.RevolutionPi
             (inout | ((len & IOCPARM_MASK) << 16) | ((group) << 8) | (num));
         internal static uint _IO(uint g, uint n) => _IOC(IOC_VOID, (g), (n), 0);
 
-        [DllImport("libc", EntryPoint = "ioctl", SetLastError = true, CharSet = CharSet.Auto)]
-        internal static extern int ioctl_void(int file, uint cmd);
-        [DllImport("libc", EntryPoint = "ioctl", SetLastError = true, CharSet = CharSet.Auto)]
-        internal static extern int ioctl_value(int file, uint cmd, SpiValue value);
+        // The ioctl request argument is unsigned long = 64-bit on aarch64 -> use nuint
+        // (the 32-bit command value widens implicitly).
+        [DllImport("libc", EntryPoint = "ioctl", SetLastError = true)]
+        internal static extern int ioctl_void(int file, nuint cmd);
+        [DllImport("libc", EntryPoint = "ioctl", SetLastError = true)]
+        internal static extern int ioctl_value(int file, nuint cmd, SpiValue value);
 
 
         // piControl.h

@@ -1,6 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Newtonsoft.Json.Linq;
 
 namespace IctBaden.RevolutionPi.Model
 {

@@ -1,4 +1,4 @@
-﻿namespace IctBaden.RevolutionPi
+namespace IctBaden.RevolutionPi
 {
     public class VarData
     {

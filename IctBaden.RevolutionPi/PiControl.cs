@@ -1,13 +1,13 @@
-﻿using IctBaden.RevolutionPi.Model;
 using System.Diagnostics;
 using System.Text;
+using IctBaden.RevolutionPi.Model;
 
 namespace IctBaden.RevolutionPi
 {
     /// <summary>
     /// Interface to piControl driver process.
     /// </summary>
-    public class PiControl
+    public class PiControl : IPiControl
     {
         /// <summary>
         /// Linux device name full path
@@ -72,7 +72,7 @@ namespace IctBaden.RevolutionPi
             }
 
             var data = new byte[length];
-            var bytesRead = Interop.read(_piControlHandle, data, length);
+            var bytesRead = Interop.read(_piControlHandle, data, (nuint)length);
             return bytesRead != length ? null : data;
         }
 
@@ -91,8 +91,8 @@ namespace IctBaden.RevolutionPi
                 return 0;
             }
 
-            var bytesWritten = Interop.write(_piControlHandle, data, data.Length);
-            return bytesWritten;
+            var bytesWritten = Interop.write(_piControlHandle, data, (nuint)data.Length);
+            return (int)bytesWritten;
         }
 
         /// <summary>

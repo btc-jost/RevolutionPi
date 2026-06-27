@@ -6,7 +6,9 @@ packages
 [Aa]rtifacts
 builds46
 nuget
-.fake 
+.fake
+MigrationBackup/
+*.bak
 
 *.suo
 *.user

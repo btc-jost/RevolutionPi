@@ -1,4 +1,4 @@
-﻿namespace IctBaden.RevolutionPi.Model
+namespace IctBaden.RevolutionPi.Model
 {
     public enum VariableType
     {

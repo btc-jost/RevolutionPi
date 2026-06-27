@@ -1,45 +1,23 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AssemblyTitle>IctBaden.RevolutionPi</AssemblyTitle>
-    <LangVersion>9</LangVersion>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <PackageId>IctBaden.RevolutionPi</PackageId>
-    <Authors>Frank Pfattheicher</Authors>
-    <Title>.NET support libraries for data exchange with RevPi I/O-Modules and Gateways</Title>
-    <Description>.NET support libraries for data exchange with RevPi I/O-Modules and Gateways</Description>
-    <Copyright>Copyright ICT Baden GmbH 2017-2021</Copyright>
-    <PackageProjectUrl>https://github.com/FrankPfattheicher/RevolutionPi</PackageProjectUrl>
+    <Title>.NET support library for data exchange with RevPi I/O-Modules and Gateways</Title>
+    <Description>.NET support library for data exchange with RevPi I/O-Modules and Gateways (btc.jost fork)</Description>
+    <Version>1.0.0</Version>
+    <Authors>btc.jost AG</Authors>
+    <Company>btc.jost AG</Company>
+    <Product>RevolutionPi .NET Library</Product>
+    <Copyright>Copyright © 2017-2021 ICT Baden GmbH; fork © 2025 btc.jost AG</Copyright>
+    <PackageProjectUrl>https://github.com/btc-jost/RevolutionPi</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/btc-jost/RevolutionPi</RepositoryUrl>
     <PackageTags>RevolutionPi .NET Library</PackageTags>
-    <PackageReleaseNotes>Net standard version</PackageReleaseNotes>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageIcon>icon64.png</PackageIcon>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <RepositoryUrl>https://github.com/FrankPfattheicher/RevolutionPi</RepositoryUrl>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
     <DebugType>none</DebugType>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\RevPi-AssemblyInfo.cs">
-      <Link>Properties\RevPi-AssemblyInfo.cs</Link>
-    </Compile>
-    <None Include="..\icon64.png">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <None Include="..\LICENSE">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-    <None Include="..\README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 </Project>

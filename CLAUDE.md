@@ -21,23 +21,30 @@ Confirmed **64-bit (aarch64)** RevPi image. This matters for the P/Invoke widths
 
 ## Layout
 
-- `IctBaden.RevolutionPi/` — **the library** (netstandard2.0, C# 9). Key files:
+- `IctBaden.RevolutionPi/` — **the library** (**net10.0**, nullable off). Key files:
   - `Interop.cs` — `[DllImport("libc")]` P/Invoke (`open/close/lseek/read/write/ioctl`) + `piControl.h`
-    ioctl constants (`KB_*`, `_IO/_IOC`).
+    ioctl constants (`KB_*`, `_IO/_IOC`). aarch64-correct widths (`nint`/`nuint`); `IOC_VOID = 0`.
   - `PiControl.cs` — driver wrapper (process-image `Read`/`Write` via lseek+read/write; `GetBitValue`/
-    `SetBitValue`/`Reset` via ioctl; `ReadVariable`/`ConvertDataToValue`).
+    `SetBitValue`/`Reset` via ioctl; `ReadVariable`/`ConvertDataToValue`). Implements `IPiControl`.
+  - `IPiControl.cs` — `Read`/`Write` seam so `RevPiLeds` bit-packing is unit-testable with a fake buffer.
   - `RevPiLeds.cs` — packs A1/A2/A3/Watchdog into one process-image LED byte
-    (A1=bits0-1, A2=2-3, A3=4-5, Watchdog=bit7).
+    (A1=bits0-1, A2=2-3, A3=4-5, Watchdog=bit7). Takes `IPiControl`; null-read-guarded.
   - `Configuration/PiConfiguration.cs` — parses `/etc/revpi/config.rsc` (Newtonsoft.Json).
-  - `Model/` — `SpiValue` (matches driver `SPIValue {__u16,__u8,__u8}`), `VariableInfo`, `DeviceInfo`, …
-- `IctBaden.RevolutionPi.Test/` — **real NUnit tests** (`ConfigurationTests`, embedded `config.json`).
-  Currently .NET Framework v4.8; to be modernized to net10 and wired into CI.
-- `PiTest.Core/` — net8.0 **interactive console sample** (the live one).
-- `PiTest/` — legacy v4.8 console sample, **superseded by PiTest.Core** (prune candidate).
-- `IctBaden.RevolutionPi.Standard/` — netstandard2.0 **duplicate** of the lib (prune candidate).
+  - `Model/` — `SpiValue` (matches driver `SPIValue {__u16,__u8,__u8}`, 4 bytes), `SpiVariable`
+    (matches `SPIVariable`, 38 bytes incl. pad), `VariableInfo`, `DeviceInfo`, …
+- `IctBaden.RevolutionPi.Test/` — **net10 NUnit** tests (SDK-style, `Microsoft.NET.Test.Sdk` + `NUnit` +
+  `NUnit3TestAdapter`). In the **parent** `NovaalertStatusForwarderService.slnx`, so the parent CI
+  `dotnet test` runs them: `ConfigurationTests`, `ConvertDataToValueTests`, `RevPiLedsTests`,
+  `StructLayoutTests`.
+- `PiTest.Core/` — net10 **interactive console sample** (the live one; `linux-arm64`).
 - `VariableServer/` — REST debug tool exposing RevPi variables (`GET /variables`, `/variables/{name}`).
-  v4.8 + OWIN/`System.Web.Http` + Mono. **Keep** (useful for debugging); a net10 ASP.NET Core port is
-  the way to run it on the modern image.
+  v4.8 + OWIN/`System.Web.Http` + Mono — **parked / removed from `RevolutionPi.sln`** because net48 can't
+  consume the net10 lib (NU1201). Source kept; a **net10 ASP.NET Core minimal-API port** is the way to
+  bring it back (deferred — see Known issues).
+
+> Pruned in the hardening pass: `IctBaden.RevolutionPi.Standard` (netstandard2.0 duplicate of the lib),
+> legacy v4.8 `PiTest` (superseded by `PiTest.Core`), and committed binaries/cruft (`NuGet.exe`,
+> `VariableServer.zip`, `*.nuspec`, `build.bat`/`publish.bat`/`SetPacketVersion.ps1`, `MigrationBackup/`).
 
 ## Vendor references (authoritative)
 
@@ -47,48 +54,49 @@ Confirmed **64-bit (aarch64)** RevPi image. This matters for the P/Invoke widths
   `KB_SET_VALUE=_IO('K',16)` — all `_IO` (void direction). `SPIValue { __u16 i16uAddress; __u8 i8uBit;
   __u8 i8uValue; }` (4 bytes). The fork's ioctl **numbers are correct**; only integer **widths** are wrong.
 
-## Current state (IMPORTANT)
+## Current state
 
-There are **uncommitted working-tree changes** on branch `updates` (not yet committed). They are good and
-should be kept:
-- SDK-style csproj migration (old `v4.0` ToolsVersion → `Microsoft.NET.Sdk`, netstandard2.0,
-  `PackageReference Newtonsoft.Json 13.0.3`).
-- `RevPiLeds`: added `SystemLedA3` + `Watchdog`, a `LedByte` read-modify-write helper, ctor null-guard.
-- `PiControl.ConvertDataToValue`: `case 3:` → `case 4:` — a real bug fix (4-byte values were falling
-  through to the ASCII-string default).
+The fork-hardening pass is **done** on branch `updates` (committed). The committed HEAD (`e638b12`) and
+`origin/master` predate it. History on `updates`: a **baseline** commit folding in the prior SDK-style
+migration (`RevPiLeds` A3/Watchdog, `ConvertDataToValue` case-4 fix), then the **hardening** commit
+(Workstreams A–E below). `PLAN-fork-hardening.md` (untracked, kept on disk) was the working plan.
 
-The committed HEAD (`e638b12`) and `origin/master` still have the **pre-migration** state.
+## Done in the hardening pass
 
-## Known issues / planned work
+1. **Interop 64-bit widths** (`Interop.cs` + `PiControl.cs`): `lseek`→`nint` offset/return;
+   `read`/`write`→`nuint count`/`nint` return; `ioctl_*`→`nuint cmd`; dropped `using off_t=Int32`.
+   `byte[]` (LPArray) marshaling was already correct. Validated against the real driver header
+   `D:\source\repos\RevolutionPi\piControl\src\piControl.h`.
+2. **`IOC_VOID` reverted to `0x00000000`** — Linux `_IO` uses `_IOC_NONE = 0` (the working tree had the
+   BSD `0x20000000`, which produced wrong ioctl command numbers, e.g. `KB_GET_VALUE` → `0x20004B0F`).
+3. **`RevPiLeds.LedByte` null-read guard** — `Read` returning `null` now yields `0` instead of an NRE.
+4. **`SpiVariable` ABI fix** — was `[MarshalAs(ByValArray)]` on a `string` + missing the `__u8 pad`;
+   now `ByValTStr[32]` + explicit pad → 38 bytes (matches `SPIVariable`). Unused today (no
+   `KB_FIND_VARIABLE` caller) but now correct. Size-locked by `StructLayoutTests`.
+5. **Pruned** the `.Standard` duplicate, legacy `PiTest`, and committed binaries/cruft (see Layout note).
+6. **Repo hygiene**: normalized to **UTF-8 (no BOM) / LF** (`.editorconfig` + `.gitattributes`), so the
+   parent `dotnet format` gate no longer needs `--exclude ./RevolutionPi/` (dropped from CI). Lib csproj
+   metadata → btc ownership, `GeneratePackageOnBuild=false`.
+7. **Lib → net10** (nullable still off); `PiTest.Core` retargeted net8→**net10** + repointed to the lib.
+8. **Tests**: `IctBaden.RevolutionPi.Test` modernized to net10/NUnit (SDK-style) and added to the parent
+   slnx so CI `dotnet test` runs it; added `IPiControl` seam + `ConvertDataToValue`/`RevPiLeds`/struct-size
+   coverage.
 
-A full, approved plan is saved alongside this file: **`PLAN-fork-hardening.md`**. Summary:
+## Deferred
 
-1. **Interop 64-bit width bug** (`Interop.cs` + `PiControl.cs`): `off_t`/`size_t`/`ssize_t` and the
-   `ioctl` request are 64-bit on aarch64 but declared 32-bit (`int`/`uint`, `using off_t=System.Int32`).
-   Fix: `lseek`→`nint` offset/return; `read`/`write`→`nuint count`/`nint` return; `ioctl_*`→`nuint cmd`.
-   `byte[]` (LPArray) marshaling is already correct.
-2. **`IOC_VOID` regression**: the working tree has `0x20000000` (BSD value). On Linux/aarch64 `_IO` uses
-   `_IOC_NONE = 0`, so this produces wrong ioctl command numbers (e.g. `KB_GET_VALUE` → `0x20004B0F`
-   instead of `0x4B0F`). **Should be `0x00000000`** — the repo's own commit `fc4da36 "Fixed IOC_VOID
-   value"` already set it to 0; the working-tree change re-introduced the bug. Not hit by the LED path
-   (which uses read/write, not ioctl), but a latent library bug.
-3. **`RevPiLeds.LedByte` getter NRE**: `_control.Read(...)[0]` throws if `Read` returns `null`. Guard it.
-4. **Prune** the `.Standard` duplicate + legacy `PiTest`; delete committed binaries (`NuGet.exe` 6.5 MB,
-   `VariableServer.zip` 1 MB), `MigrationBackup/`, `packages/`, `.vs/`, `*.bak`.
-5. **Repo hygiene**: files are UTF-8-**with-BOM** + **CRLF** → normalize to UTF-8/LF (this is why the
-   parent repo's `dotnet format` gate excludes this submodule via `--exclude ./RevolutionPi/`). Update
-   csproj package metadata to btc ownership; set `GeneratePackageOnBuild=false`.
-6. **Tests**: modernize `IctBaden.RevolutionPi.Test` to net10/NUnit and add it to the parent
-   `NovaalertStatusForwarderService.slnx` so the CI `dotnet test` step (today a no-op) runs it. Add a tiny
-   `IPiControl` seam to unit-test `RevPiLeds` bit-packing and `ConvertDataToValue`.
+- **VariableServer net10 ASP.NET Core port** — parked (removed from `RevolutionPi.sln`; source kept).
+- `<Nullable>enable</Nullable>` on the lib; System.Text.Json migration; publishing the NuGet package.
+- LED byte layout for newer RevPi models (Connect 4 / Flat use more / RGB LEDs) — hardware-specific, not
+  in `piControl.h`; verify on the device.
 
 ## Conventions & gotchas
 
 - **The parent CI builds this lib with `-warnaserror`** (via the ProjectReference in the parent slnx).
-  Keep it warning-clean. Staying on netstandard2.0 / nullable-off keeps that easy; if you enable
-  `<Nullable>`, you must resolve every resulting warning or the parent build breaks.
+  Keep it warning-clean. nullable-off keeps that easy; if you enable `<Nullable>`, you must resolve every
+  resulting warning or the parent build breaks. (The lib is **net10**; net10 analyzers like CA2101 apply —
+  the `libc` string P/Invoke uses `CharSet.Ansi` to stay clean.)
 - **The LED byte layout is hardware-specific** and is **not** defined in `piControl.h`. Newer RevPi models
   (Connect 4 / Flat) use more / RGB LEDs with a different process-image layout. Verify against the actual
   device before relying on it.
-- `nint`/`nuint` are valid at `LangVersion 9` (the lib's setting), so the Interop width fix needs no TFM bump.
-- This submodule has its own solution `RevolutionPi.sln`; the parent builds only the lib via ProjectReference.
+- This submodule has its own solution `RevolutionPi.sln` (lib + `PiTest.Core` + test project); the parent
+  builds the lib + test project via the parent slnx.

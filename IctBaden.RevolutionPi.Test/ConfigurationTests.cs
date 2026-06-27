@@ -1,7 +1,7 @@
-﻿using IctBaden.RevolutionPi.Configuration;
-using NUnit.Framework;
 using System.IO;
 using System.Reflection;
+using IctBaden.RevolutionPi.Configuration;
+using NUnit.Framework;
 
 namespace IctBaden.RevolutionPi.Test
 {

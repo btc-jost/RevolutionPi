@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace IctBaden.RevolutionPi.Model
 {
@@ -56,7 +56,7 @@ namespace IctBaden.RevolutionPi.Model
                 return KnownProducts[productType];
             }
 
-            return $"Unknown roduct Type ({productType})";
+            return $"Unknown product type ({productType})";
         }
     }
 }

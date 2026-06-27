@@ -1,6 +1,6 @@
-﻿using IctBaden.RevolutionPi.Configuration;
 using System;
 using System.Diagnostics;
+using IctBaden.RevolutionPi.Configuration;
 
 namespace IctBaden.RevolutionPi
 {
@@ -9,10 +9,10 @@ namespace IctBaden.RevolutionPi
     /// </summary>
     public class RevPiLeds
     {
-        private readonly PiControl _control;
+        private readonly IPiControl _control;
         private readonly int _ledAddress;
 
-        public RevPiLeds(PiControl control, PiConfiguration config)
+        public RevPiLeds(IPiControl control, PiConfiguration config)
         {
             _control = control ?? throw new ArgumentException("RevPiLeds cannot be used without PiControl");
 
@@ -23,7 +23,11 @@ namespace IctBaden.RevolutionPi
 
         private byte LedByte
         {
-            get => _control.Read(_ledAddress, 1)[0];
+            get
+            {
+                var data = _control.Read(_ledAddress, 1);
+                return data?[0] ?? 0;
+            }
             set => _control.Write(_ledAddress, new[] { value });
         }
 
