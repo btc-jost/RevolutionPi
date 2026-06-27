@@ -5,7 +5,14 @@ using IctBaden.RevolutionPi.Configuration;
 namespace IctBaden.RevolutionPi
 {
     /// <summary>
-    /// Setting and querying the system LEDs A1, A2, A3 and Watchdog.
+    /// Setting and querying the system LEDs A1/A2/A3 and the watchdog trigger in the single-byte
+    /// <c>leds</c> field (see <see cref="Model.RevPiLedBits"/>). The byte address comes from the
+    /// <c>RevPiLED</c> variable in <c>config.rsc</c> (default process-image offset 0x06).
+    /// <para>
+    /// Layout applies to RevPi Core/Core S/SE and Connect. <b>On Core S/SE only A1 and A2 exist</b>
+    /// (no A3 LED, no watchdog) - <see cref="SystemLedA3"/>/<see cref="Watchdog"/> write unused bits
+    /// there. RevPi Connect 4/5 drive their RGB LEDs through a separate field and are not supported here.
+    /// </para>
     /// </summary>
     public class RevPiLeds
     {
@@ -54,7 +61,7 @@ namespace IctBaden.RevolutionPi
         }
 
         /// <summary>
-        /// Current color of system LED A3
+        /// Current color of system LED A3 (RevPi Connect / Flat; not present on Core S/SE).
         /// </summary>
         public LedColor SystemLedA3
         {
@@ -63,7 +70,7 @@ namespace IctBaden.RevolutionPi
         }
 
         /// <summary>
-        /// Watchdog
+        /// Watchdog trigger bit (RevPi Connect, <c>PICONTROL_WD_TRIGGER</c>; not present on Core S/SE).
         /// </summary>
         public bool Watchdog
         {

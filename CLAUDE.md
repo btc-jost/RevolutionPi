@@ -94,8 +94,9 @@ migration (`RevPiLeds` A3/Watchdog, `ConvertDataToValue` case-4 fix), then the *
 ## Deferred
 
 - Publishing the NuGet package (consumed via ProjectReference; `GeneratePackageOnBuild=false`).
-- LED byte layout for newer RevPi models (Connect 4 / Flat use more / RGB LEDs) — hardware-specific, not
-  in `piControl.h`; verify on the device.
+- LED support for non-Core models: **Flat** (A4/A5 across bits 6-9) and **Connect 4/5** (separate 16-bit
+  `rgb_leds` field — `RevPiLeds` does not drive these). The deployment target is **RevPi Core S/SE**
+  (A1/A2 only), for which the current code is correct; see `RevPiLedBits` for the full per-model layout.
 
 ## Conventions & gotchas
 
@@ -104,9 +105,12 @@ migration (`RevPiLeds` A3/Watchdog, `ConvertDataToValue` case-4 fix), then the *
   any public API it exposes warning-clean (the parent consumes only ctors / `Open()` / LED props, so the
   blast radius is small, but don't widen nullable holes in the public surface). net10 analyzers like CA2101
   apply — the `libc` string P/Invoke uses `CharSet.Ansi` to stay clean.
-- **The LED byte layout is hardware-specific** and is **not** defined in `piControl.h`. Newer RevPi models
-  (Connect 4 / Flat) use more / RGB LEDs with a different process-image layout. Verify against the actual
-  device before relying on it.
+- **The LED byte layout is hardware-specific.** It *is* defined in the driver's `picontrol_intern.h`
+  (`PICONTROL_LED_*`) and `revpi_core.h` (`SRevPiProcessImage`), mirrored in `Model/RevPiLedBits.cs` +
+  `RevPiCoreImageOffsets`. The single-byte `leds` field (offset 0x06, from the `RevPiLED` config var) holds
+  A1=bits0-1, A2=2-3, A3=4-5, X2_DOUT=bit6, WD_TRIGGER=bit7 on Core/Connect. **Target = Core S/SE → only
+  A1/A2** (A3/Watchdog write unused bits). Flat and Connect 4/5 (RGB, separate `rgb_leds` u16) differ —
+  verify on-device before driving LEDs there. The status byte (offset 0) matches `RevPiStatus`.
 - This submodule has its own solution `RevolutionPi.sln` (lib + `PiTest.Core` + `VariableServer` + test
   project) and its **own CI** (`.github/workflows/ci.yml`, ubuntu): restore → build Release `-warnaserror`
   → `dotnet format --verify-no-changes` → test with coverage → ReportGenerator HTML (uploaded as an
